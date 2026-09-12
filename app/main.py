@@ -345,23 +345,26 @@ if selected_dataset == "Geospatial & Zone Analytics":
             )
 
     with tab6:
-        st.subheader ("🔮 Short-Term Trend Projection Engine (Post-Lockdown Forecasting)")
+        st.subheader ("🔮 Short-Term Trend Projection Engine (Post Lockdown Forecasting)")
         st.caption (
             "Predictive trend modeling powered by 2nd degree Polynomial Trend Regression"
         )
+
+        # Added unique state key to prevent slider freezing during Streamlit reruns
 
         forecast_horizon = st.slider (
             "Select Forecast Horizon (Months Ahead)",
             min_value = 1,
             max_value = 6,
             value = 3,
+            key = "forecast_horizon_slider",
         )
 
         hist_df,forecast_df = generate_unemployment_forecast (
             df_geo,selected_state,forecast_months = forecast_horizon)
 
         if forecast_df is not None:
-            col_f1,col_f2 = st.columns ([1.2,0.8],gap = "large")
+            col_f1,col_f2 = st.columns ([1.1,0.9],gap = "large")
 
             with col_f1:
                 # Combine historical and forecasted data for unified visualization
@@ -380,7 +383,7 @@ if selected_dataset == "Geospatial & Zone Analytics":
                 fig_forecast.add_trace (
                     go.Scatter (
                         x = forecast_df ["Date"],
-                        y = forecast_df ["Forecasted_Unemployment_Rate (%)"],
+                        y = forecast_df["Forecasted_Unemployment_Rate (%)"],
                         mode = "lines+markers",
                         name = "Projected Forecast",
                         line = dict(color = "#FF9F43",width = 2.5,dash = "dash"),
@@ -394,7 +397,7 @@ if selected_dataset == "Geospatial & Zone Analytics":
                     template = "plotly_dark",
                     height = 420,
                     margin = dict(l = 15,r = 15,t = 35,b = 15),
-                    legend = dict(orientation = "h",y = -0.2),
+                    legend = dict(orientation = "h",y = -0.25),
                 )
 
                 st.plotly_chart (fig_forecast,width = "stretch")
@@ -406,8 +409,8 @@ if selected_dataset == "Geospatial & Zone Analytics":
                 st.dataframe (
                     forecast_display.style.highlight_max (axis = 0,color = "#8B0000"),
                     width = "stretch",
-                    height = 360,)
-                    
+                    height = 360,
+                )
 else:
     df_selected = df_area.copy ()
     
