@@ -77,3 +77,59 @@ def generate_executive_summary (df_geo,df_area):
         "higher_sector": "Urban" if urban_avg > rural_avg else "Rural",
     }
     return summary_text
+
+def generate_unemployment_forecast (df,state_name,forecast_months = 3):
+
+    # Generates short-term statistical trend projections using Polynomial Regression fit.
+    # Filter data for selected state or national aggregate
+
+    if state_name != "All States":
+        state_df = df [df ["State"] == state_name].copy ()
+    else:
+        state_df = (
+            df.groupby ("Date")["Unemployment_Rate"].mean ().reset_index ()
+        )
+        state_df ["State"] = "All States"
+
+    state_df = state_df.sort_values (by = "Date").dropna (subset = ["Unemployment_Rate"])
+
+    if len (state_df) < 3:
+        return None,None
+
+    # Convert dates to numeric days for regression fitting
+
+    state_df ["Days"] = (state_df ["Date"] - state_df ["Date"].min ()).dt.days
+
+    # Fit 2nd degree Polynomial Regression model
+
+    X = state_df ["Days"].values
+    y = state_df ["Unemployment_Rate"].values
+    poly_coefs = np.polyfit (X,y,deg = 2)
+    poly_func = np.poly1d (poly_coefs)
+
+    # Generate future monthly dates
+
+    last_date = state_df ["Date"].max ()
+    future_dates = [
+        last_date + pd.DateOffset (months = i) for i in range (1,forecast_months + 1)
+    ]
+    future_days = [(d - state_df ["Date"].min ()).days for d in future_dates]
+
+    # Predict future values
+
+    future_preds = poly_func (future_days)
+
+    # Ensure predictions stay within realistic boundaries (>= 0 %)
+
+    future_preds = np.clip (future_preds,a_min = 0.5,a_max = 95.0)
+
+    # Construct forecast dataframe
+
+    forecast_df = pd.DataFrame (
+        {
+            "Date": future_dates,
+            "Forecasted_Unemployment_Rate (%)": np.round (future_preds,2),
+            "Type": "Statistical Forecast Projection",
+        }
+    )
+    return state_df,forecast_df

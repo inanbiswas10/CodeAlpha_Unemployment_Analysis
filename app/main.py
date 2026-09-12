@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 
 sys.path.append (os.path.abspath (os.path.join (os.path.dirname (__file__),"..")))
 from src.data_loader import load_area_data,load_geo_data
-from src.analytics import (compute_lockdown_impact,compute_moving_averages,generate_executive_summary,)
+from src.analytics import (compute_lockdown_impact,compute_moving_averages,generate_executive_summary,generate_unemployment_forecast,)
 
 # Streamlit application layout configuration
 
@@ -151,13 +151,14 @@ if selected_dataset == "Geospatial & Zone Analytics":
     st.write ("")
     st.write ("")
 
-    tab1,tab2,tab3,tab4,tab5  = st.tabs (
+    tab1,tab2,tab3,tab4,tab5,tab6 = st.tabs (
         [
             "📉 Temporal Trajectory & Map Analysis",
             "🏛️ Macro Zonal Analysis",
             "🔍 Multi State Comparison Section",
             "⚡ Impact Matrix & Forecast Analysis",
-            "📋 Executive Briefing Section"
+            "📋 Executive Briefing Section",
+            "🔮 Predictive Forecasting Analysis"
         ]
     )
 
@@ -343,6 +344,70 @@ if selected_dataset == "Geospatial & Zone Analytics":
             """
             )
 
+    with tab6:
+        st.subheader ("🔮 Short-Term Trend Projection Engine (Post-Lockdown Forecasting)")
+        st.caption (
+            "Predictive trend modeling powered by 2nd degree Polynomial Trend Regression"
+        )
+
+        forecast_horizon = st.slider (
+            "Select Forecast Horizon (Months Ahead)",
+            min_value = 1,
+            max_value = 6,
+            value = 3,
+        )
+
+        hist_df,forecast_df = generate_unemployment_forecast (
+            df_geo,selected_state,forecast_months = forecast_horizon)
+
+        if forecast_df is not None:
+            col_f1,col_f2 = st.columns ([1.2,0.8],gap = "large")
+
+            with col_f1:
+                # Combine historical and forecasted data for unified visualization
+                fig_forecast = go.Figure ()
+
+                fig_forecast.add_trace (
+                    go.Scatter (
+                        x = hist_df ["Date"],
+                        y = hist_df ["Unemployment_Rate"],
+                        mode = "lines+markers",
+                        name = "Historical Rate",
+                        line = dict(color = "#00D26A",width = 2.5),
+                    )
+                )
+
+                fig_forecast.add_trace (
+                    go.Scatter (
+                        x = forecast_df ["Date"],
+                        y = forecast_df ["Forecasted_Unemployment_Rate (%)"],
+                        mode = "lines+markers",
+                        name = "Projected Forecast",
+                        line = dict(color = "#FF9F43",width = 2.5,dash = "dash"),
+                    )
+                )
+
+                fig_forecast.update_layout (
+                    title = f"Historical vs Projected Trajectory ({selected_state})",
+                    xaxis_title = "Timeline",
+                    yaxis_title = "Unemployment Rate (%)",
+                    template = "plotly_dark",
+                    height = 420,
+                    margin = dict(l = 15,r = 15,t = 35,b = 15),
+                    legend = dict(orientation = "h",y = -0.2),
+                )
+
+                st.plotly_chart (fig_forecast,width = "stretch")
+
+            with col_f2:
+                st.subheader ("Projected Values Table")
+                forecast_display = forecast_df [["Date","Forecasted_Unemployment_Rate (%)"]].copy ()
+                forecast_display ["Date"] = forecast_display ["Date"].dt.strftime ("%B %Y")
+                st.dataframe (
+                    forecast_display.style.highlight_max (axis = 0,color = "#8B0000"),
+                    width = "stretch",
+                    height = 360,)
+                    
 else:
     df_selected = df_area.copy ()
     
