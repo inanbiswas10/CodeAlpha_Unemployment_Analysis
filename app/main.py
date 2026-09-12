@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 
 sys.path.append (os.path.abspath (os.path.join (os.path.dirname (__file__),"..")))
 from src.data_loader import load_area_data,load_geo_data
-from src.analytics import compute_lockdown_impact,compute_moving_averages
+from src.analytics import (compute_lockdown_impact,compute_moving_averages,generate_executive_summary,)
 
 # Streamlit application layout configuration
 
@@ -113,6 +113,23 @@ selected_dataset = st.sidebar.radio (
     "Data Source Mode",
     options = ["Geospatial & Zone Analytics","Sectoral Breakdown (Rural vs Urban)"],)
 
+st.sidebar.markdown ("---")
+st.sidebar.subheader ("📥 Data Export Engine")
+
+# Convert current view dataframe to CSV string for download
+
+csv_data = (
+    df_geo.to_csv (index = False)
+    if selected_dataset == "Geospatial & Zone Analytics"
+    else df_area.to_csv (index = False)
+)
+st.sidebar.download_button (
+    label = "Export Current Dataset (CSV)",
+    data = csv_data,
+    file_name = f"{selected_dataset.replace (' ','_').lower ()}_export.csv",
+    mime = "text/csv",
+    use_container_width = True,)
+
 if selected_dataset == "Geospatial & Zone Analytics":
     df_selected = df_geo.copy ()
     states = ["All States"] + sorted (list(df_selected ["State"].unique ()))
@@ -134,12 +151,13 @@ if selected_dataset == "Geospatial & Zone Analytics":
     st.write ("")
     st.write ("")
 
-    tab1,tab2,tab3,tab4 = st.tabs (
+    tab1,tab2,tab3,tab4,tab5  = st.tabs (
         [
             "📉 Temporal Trajectory & Map Analysis",
             "🏛️ Macro Zonal Analysis",
             "🔍 Multi State Comparison Section",
             "⚡ Impact Matrix & Forecast Analysis",
+            "📋 Executive Briefing Section"
         ]
     )
 
@@ -298,6 +316,32 @@ if selected_dataset == "Geospatial & Zone Analytics":
             )
             fig_smooth.update_layout (margin = dict(l = 10,r = 10,t = 20,b = 10))
             st.plotly_chart (fig_smooth,width = "stretch")
+
+    with tab5:
+        st.subheader ("📋 Automated Executive Economic Summary")
+        summary = generate_executive_summary (df_geo,df_area)
+
+        col_a,col_b = st.columns (2,gap = "large")
+
+        with col_a:
+            st.markdown (
+                f"""
+            ### 🚨 Critical COVID-19 Impact Highlights
+            * **Historical Peak Unemployment:** **{summary ['peak_state']}** recorded the highest unemployment rate of **{summary ['peak_rate']}** in **{summary ['peak_date']}**.
+            * **National Lockdown Shock:** National average unemployment jumped from **{summary ['pre_avg']}** (Pre-Lockdown) to **{summary ['lockdown_avg']}** during strict lockdown, reflecting an overall surge of **{summary ['spike']}**.
+            * **Sectoral Vulnerability:** The **{summary ['higher_sector']}** sector experienced higher overall unemployment during the observation period (**Urban: {summary ['urban_avg']}** vs **Rural: {summary ['rural_avg']}**).
+            """
+            )
+
+        with col_b:
+            st.markdown (
+                """
+            ### 💡 Strategic Policy Recommendations
+            * **Targeted Regional Aid:** Allocate emergency labor relief funds to top vulnerable states identified in the Impact Matrix.
+            * **Urban Job Guarantee Programs:** Expand employment support programs in urban areas to mitigate systemic shocks during economic disruptions.
+            * **Real-Time Surveillance:** Implement monthly automated data monitoring pipelines to track early signs of labour market distress.
+            """
+            )
 
 else:
     df_selected = df_area.copy ()
