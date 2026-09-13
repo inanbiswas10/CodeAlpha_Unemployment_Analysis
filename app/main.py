@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 
 sys.path.append (os.path.abspath (os.path.join (os.path.dirname (__file__),"..")))
 from src.data_loader import load_area_data,load_geo_data
-from src.analytics import (compute_lockdown_impact,compute_moving_averages,generate_executive_summary,generate_unemployment_forecast,)
+from src.analytics import (compute_lockdown_impact,compute_moving_averages,generate_executive_summary,generate_unemployment_forecast,compute_correlation_matrix,detect_anomalies_zscore,)
 
 # Streamlit application layout configuration
 
@@ -151,14 +151,16 @@ if selected_dataset == "Geospatial & Zone Analytics":
     st.write ("")
     st.write ("")
 
-    tab1,tab2,tab3,tab4,tab5,tab6 = st.tabs (
+    tab1,tab2,tab3,tab4,tab5,tab6,tab7,tab8 = st.tabs (
         [
             "📉 Temporal Trajectory & Map Analysis",
             "🏛️ Macro Zonal Analysis",
             "🔍 Multi State Comparison Section",
             "⚡ Impact Matrix & Forecast Analysis",
             "📋 Executive Briefing Section",
-            "🔮 Predictive Forecasting Analysis"
+            "🔮 Predictive Forecasting Analysis",
+            "📊 Correlation Matrix Section",
+            "🚨 Anomaly Detector"
         ]
     )
 
@@ -411,6 +413,62 @@ if selected_dataset == "Geospatial & Zone Analytics":
                     width = "stretch",
                     height = 360,
                 )
+
+    with tab7:
+        st.subheader ("📊 Economic Indicator Correlation Engine")
+        st.caption ("Pearson correlation analysis between Unemployment Rate, Employed Population and Labour Participation.")
+
+        col_c1,col_c2 = st.columns ([1.1,0.9],gap = "large")
+
+        with col_c1:
+            corr_df = compute_correlation_matrix (df_selected)
+            fig_corr = px.imshow (
+                corr_df,
+                text_auto = ".2f",
+                color_continuous_scale = "Viridis",
+                title = "Indicator Correlation Heatmap",
+                template = "plotly_dark",
+                height = 400,
+            )
+            fig_corr.update_layout (margin = dict(l = 15,r = 15,t = 35,b = 15))
+            st.plotly_chart (fig_corr,width = "stretch")
+
+        with col_c2:
+            st.markdown (
+                """
+            ### 💡 Correlation Insights
+            * **Unemployment vs Labour Participation:** Examines structural labor force market exit during crisis shocks.
+            * **Unemployment vs Employed Workforce:** Negative correlation confirms systemic contraction of total employed numbers during peak lockdown.
+            """
+            )
+            st.dataframe (corr_df.style.background_gradient (cmap = "Blues"),width = "stretch")
+
+    with tab8:
+        st.subheader ("🚨 Statistical Outlier & Anomaly Detection")
+        st.caption ("Identifies regional rate anomalies using standard normal Z-Score thresholding.")
+
+        z_threshold = st.slider (
+            "Select Z-Score Sensitivity Threshold",
+            min_value = 1.0,
+            max_value = 3.5,
+            value = 2.0,
+            step = 0.25,
+            key = "z_score_threshold_slider",
+        )
+
+        anomalies_df = detect_anomalies_zscore (df_geo,threshold = z_threshold)
+
+        if not anomalies_df.empty:
+            st.markdown (f"**Found {len (anomalies_df)} statistical anomalies at Z-Score threshold $\geq {z_threshold}$**")
+            st.dataframe (
+                anomalies_df [["State","Date","Unemployment_Rate","Zone","Z_Score"]]
+                .style.background_gradient (cmap = "Reds",subset = ["Unemployment_Rate","Z_Score"])
+                .format ({"Unemployment_Rate": "{:.2f} %","Z_Score": "{:.2f}"}),
+                width = "stretch",
+                height = 360,
+            )
+        else:
+            st.info ("No statistical anomalies found at this threshold level. Try reducing the Z-Score slider.")
 else:
     df_selected = df_area.copy ()
     

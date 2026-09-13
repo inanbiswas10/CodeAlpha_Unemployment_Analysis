@@ -133,3 +133,28 @@ def generate_unemployment_forecast (df,state_name,forecast_months = 3):
         }
     )
     return state_df,forecast_df
+
+def compute_correlation_matrix (df: pd.DataFrame) -> pd.DataFrame:
+
+    # Computes Pearson correlation matrix between key economic indicators.
+
+    target_cols = ["Unemployment_Rate","Employed","Labour_Participation_Rate"]
+    valid_cols = [c for c in target_cols if c in df.columns]
+    return df [valid_cols].corr ()
+
+def detect_anomalies_zscore (df: pd.DataFrame,threshold: float = 2.0) -> pd.DataFrame:
+
+    # Detects statistical outlier spikes in unemployment rates using Z-Score thresholding.
+
+    df_copy = df.copy ()
+    mean_rate = df_copy ["Unemployment_Rate"].mean ()
+    std_rate = df_copy ["Unemployment_Rate"].std ()
+
+    if std_rate == 0:
+        df_copy ["Z_Score"] = 0
+    else:
+        df_copy ["Z_Score"] = (df_copy ["Unemployment_Rate"]-mean_rate) / std_rate
+
+    anomalies = df_copy [df_copy ["Z_Score"].abs () >= threshold].copy ()
+    anomalies ["Z_Score"] = anomalies ["Z_Score"].round (2)
+    return anomalies.sort_values (by = "Z_Score",ascending = False)
