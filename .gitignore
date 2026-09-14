@@ -1,0 +1,13 @@
+# Python bytecode & cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+venv/
+ENV/
+
+# OS metadata
+.DS_Store
+Thumbs.db
