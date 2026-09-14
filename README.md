@@ -9,7 +9,13 @@ An interactive industrial grade data science application for analyzing workforce
 
 Developed as part of the **CodeAlpha Data Science Internship Program**.
 
-🌐 **[Live Demo →](https://your-app-name.streamlit.app)**
+---
+
+## 🌐 Live Application
+
+Access the production dashboard live on Streamlit Cloud:  
+
+👉 **[https://national-unemployment-analytics-platform.streamlit.app/](https://national-unemployment-analytics-platform.streamlit.app/)**
 
 ---
 
