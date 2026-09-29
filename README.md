@@ -15,7 +15,7 @@ Developed as part of the **CodeAlpha Data Science Internship Program**.
 
 Access the production dashboard live on Streamlit Cloud:  
 
-👉 **[https://national-unemployment-analytics-platform.streamlit.app/](https://national-unemployment-analytics-platform.streamlit.app/)**
+👉 **[https://laborpulse-ai-national-unemployment-analytics-platform.streamlit.app/](https://laborpulse-ai-national-unemployment-analytics-platform.streamlit.app/)**
 
 ---
 
