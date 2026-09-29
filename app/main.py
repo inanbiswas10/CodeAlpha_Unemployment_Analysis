@@ -14,7 +14,7 @@ from src.analytics import (compute_lockdown_impact,compute_moving_averages,gener
 # Streamlit application layout configuration
 
 st.set_page_config (
-    page_title = "National Unemployment Analytics Platform",
+    page_title = "LaborPulse AI - National Unemployment Analytics Platform",
     page_icon = "⚡",
     layout = "wide",
     initial_sidebar_state = "expanded",
@@ -102,7 +102,7 @@ df_area,df_geo = load_all_data()
 
 # Header Section
 
-st.title ("📈 National Unemployment & COVID-19 Impact Analytics Platform")
+st.title ("📈 LaborPulse AI - National Unemployment & COVID-19 Impact Analytics Platform")
 st.caption ("An industry grade analytics platform responsible for inspecting the employment trends, regional impacts as well as the COVID-19 shocks across the different states of India")
 st.divider ()
 
