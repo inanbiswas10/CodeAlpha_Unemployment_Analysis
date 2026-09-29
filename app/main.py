@@ -14,7 +14,7 @@ from src.analytics import (compute_lockdown_impact,compute_moving_averages,gener
 # Streamlit application layout configuration
 
 st.set_page_config (
-    page_title = "LaborPulse AI - National Unemployment Analytics Platform",
+    page_title = "LaborPulse AI",
     page_icon = "⚡",
     layout = "wide",
     initial_sidebar_state = "expanded",
